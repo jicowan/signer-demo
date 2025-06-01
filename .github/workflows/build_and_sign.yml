@@ -92,17 +92,14 @@ jobs:
       env:
         AWS_SIGNING_PROFILE_NAME: ${{ secrets.AWS_SIGNING_PROFILE_NAME }}
       run: |
-        env:
-          AWS_SIGNING_PROFILE_ARN: ${{ secrets.AWS_SIGNING_PROFILE_ARN }}
-        run: |
-          # Print image details before signing
-          echo "Image to sign: ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}"
-          
-          # Sign the image using the correct command format
-          notation sign ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }} \
-            --plugin "com.amazonaws.signer.notation.plugin" \
-            --id "$AWS_SIGNING_PROFILE_ARN"
-          
-          # Verify the signature
-          echo "Verifying image signature"
-          notation verify ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}
+        # Print image details before signing
+        echo "Image to sign: ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}"
+        
+        # Sign the image using the correct command format
+        notation sign ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }} \
+          --plugin "com.amazonaws.signer.notation.plugin" \
+          --id "$AWS_SIGNING_PROFILE_ARN"
+        
+        # Verify the signature
+        echo "Verifying image signature"
+        notation verify ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}
