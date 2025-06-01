@@ -81,6 +81,9 @@ jobs:
           sudo dpkg -i aws-signer-notation-cli.deb
           rm aws-signer-notation-cli.deb
         fi
+        
+        # Create plugin directory structure if not existing
+        mkdir -p ~/.config/notation/plugins/aws-signer
     
         # Verify installation
         echo "Verifying installation..."
