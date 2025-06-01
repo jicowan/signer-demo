@@ -88,31 +88,21 @@ jobs:
           exit 1
         fi
         
-        # Find all notation-aws-signer binaries on the system
-        echo "Looking for the aws-signer plugin binary:"
-        sudo find / -name "notation-aws-signer" -type f 2>/dev/null || echo "No notation-aws-signer binary found on the system"
-        
-        # Check plugin directory structure
-        echo "Checking Notation plugin directory:"
-        find ~/.config/notation -type f 2>/dev/null || echo "No files in ~/.config/notation"
-        
     - name: Sign image with Notation using AWS Signer
       env:
         AWS_SIGNING_PROFILE_NAME: ${{ secrets.AWS_SIGNING_PROFILE_NAME }}
-        # Set Notation debug and experimental mode to help
-        NOTATION_DEBUG: 1
-        NOTATION_EXPERIMENTAL: 1
       run: |
-        # Export environment variables that AWS Signer might need
-        export AWS_REGION=${{ secrets.AWS_REGION }}
-        
-        echo "Showing available plugins before signing:"
-        notation plugin list
-        
-        # Sign the image - try using the plugin by name
-        echo "Signing image with AWS Signer profile: $AWS_SIGNING_PROFILE_NAME"
-        notation sign --plugin aws-signer --id $AWS_SIGNING_PROFILE_NAME ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}
-        
-        # Verify the signature
-        echo "Verifying image signature"
-        notation verify ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}
+        env:
+          AWS_SIGNING_PROFILE_ARN: ${{ secrets.AWS_SIGNING_PROFILE_ARN }}
+        run: |
+          # Print image details before signing
+          echo "Image to sign: ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}"
+          
+          # Sign the image using the correct command format
+          notation sign ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }} \
+            --plugin "com.amazonaws.signer.notation.plugin" \
+            --id "$AWS_SIGNING_PROFILE_ARN"
+          
+          # Verify the signature
+          echo "Verifying image signature"
+          notation verify ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}
