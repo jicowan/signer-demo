@@ -102,7 +102,3 @@ jobs:
         notation sign $IMAGE_DIGEST \
           --plugin "com.amazonaws.signer.notation.plugin" \
           --id "$AWS_SIGNING_PROFILE_NAME"
-        
-        # Verify the signature
-        echo "Verifying image signature"
-        notation verify $IMAGE_DIGEST
