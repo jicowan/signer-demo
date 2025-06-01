@@ -38,23 +38,16 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+      with: 
+        mask-password: true
       
     - name: Set image name
       id: set-image-name
       run: |
         # Default to ECR
-        if [[ "${{ secrets.USE_GITHUB_REGISTRY }}" == "true" ]]; then
-          REGISTRY="ghcr.io"
-          REPOSITORY="${{ github.repository }}"
-        elif [[ "${{ secrets.USE_GCR }}" == "true" ]]; then
-          REGISTRY="gcr.io"
-          REPOSITORY="${{ secrets.GCR_PROJECT_ID }}/${{ secrets.GCR_REPOSITORY }}"
-        else
-          # Default to ECR
-          REGISTRY="${{ steps.login-ecr.outputs.registry }}"
-          # Use the specified ECR repo or default to repository name
-          REPOSITORY="${{ secrets.ECR_REPOSITORY || github.repository }}"
-        fi
+        REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+        # Use the specified ECR repo or default to repository name
+        REPOSITORY="${{ secrets.ECR_REPOSITORY || github.repository }}"
         
         IMAGE_TAG="${{ github.event.inputs.image-tag || github.sha }}"
         FULL_IMAGE_NAME="${REGISTRY}/${REPOSITORY}:${IMAGE_TAG}"
