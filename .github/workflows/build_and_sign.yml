@@ -63,6 +63,7 @@ jobs:
         echo "Image will be: ${FULL_IMAGE_NAME}"
 
     - name: Build and push Docker image
+      working-directory: ./app
       run: |
         docker build -t ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }} -f Dockerfile .
         docker push ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}
