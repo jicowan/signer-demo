@@ -83,7 +83,7 @@ jobs:
         fi
         
         # Create plugin directory structure if not existing
-        mkdir -p ~/.config/notation/plugins/aws-signer
+        mkdir -p /home/runner/.config/notation/plugins/aws-signer/notation-aws-signer
     
         # Verify installation
         echo "Verifying installation..."
