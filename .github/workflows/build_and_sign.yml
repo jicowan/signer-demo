@@ -98,7 +98,7 @@ jobs:
         # Sign the image using the correct command format
         notation sign ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }} \
           --plugin "com.amazonaws.signer.notation.plugin" \
-          --id "$AWS_SIGNING_PROFILE_ARN"
+          --id "$AWS_SIGNING_PROFILE_NAME"
         
         # Verify the signature
         echo "Verifying image signature"
