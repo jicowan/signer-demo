@@ -94,12 +94,15 @@ jobs:
       run: |
         # Print image details before signing
         echo "Image to sign: ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}"
+
+        IMAGE_DIGEST=$(docker inspect ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }} --format='{{index .RepoDigests 0}}')
+        echo "Image digest: $IMAGE_DIGEST"
         
         # Sign the image using the correct command format
-        notation sign ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }} \
+        notation sign $IMAGE_DIGEST \
           --plugin "com.amazonaws.signer.notation.plugin" \
           --id "$AWS_SIGNING_PROFILE_NAME"
         
         # Verify the signature
         echo "Verifying image signature"
-        notation verify ${{ steps.set-image-name.outputs.FULL_IMAGE_NAME }}
+        notation verify $IMAGE_DIGEST
