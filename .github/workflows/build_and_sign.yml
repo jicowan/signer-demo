@@ -66,70 +66,36 @@ jobs:
         # Enable verbose output
         set -x
         
-        echo "===== System Information ====="
-        uname -a
-        cat /etc/os-release || echo "OS release info not available"
+        # Determine which package to use based on OS
+        if [ -f /etc/debian_version ]; then
+          echo "Installing Debian package for Notation and AWS Signer plugin"
+          curl -Lo aws-signer-notation-cli.deb https://d2hvyiie56hcat.cloudfront.net/linux/amd64/installer/deb/latest/aws-signer-notation-cli_amd64.deb
+          sudo dpkg -i aws-signer-notation-cli.deb
+          # Fix any potential dependency issues
+          sudo apt-get -f install -y
+        elif [ -f /etc/redhat-release ]; then
+          echo "Installing RPM package for Notation and AWS Signer plugin"
+          curl -Lo aws-signer-notation-cli.rpm https://d2hvyiie56hcat.cloudfront.net/linux/amd64/installer/rpm/latest/aws-signer-notation-cli_amd64.rpm
+          sudo rpm -i aws-signer-notation-cli.rpm
+        else
+          echo "ERROR: Unknown OS. Cannot determine which package to install."
+          cat /etc/*-release
+          exit 1
+        fi
         
-        echo "===== Installing AWS Signer Notation CLI with detailed logging ====="
-        # Download the package
-        curl -Lo aws-signer-notation-cli.deb https://d2hvyiie56hcat.cloudfront.net/linux/amd64/installer/deb/latest/aws-signer-notation-cli_amd64.deb
+        # Verify the installation
+        echo "Verifying installation with notation plugin list:"
+        notation plugin list
+        if [ $? -ne 0 ]; then
+          echo "ERROR: Notation or AWS Signer plugin not installed correctly."
+          exit 1
+        fi
         
-        # Get package info
-        dpkg -I aws-signer-notation-cli.deb || echo "Could not read package info"
+        # Find the location of the installed binaries
+        echo "Binary locations:"
+        which notation || echo "WARNING: Notation binary not found in PATH"
+        which notation-aws-signer || echo "WARNING: AWS Signer plugin binary not found in PATH"
         
-        # Check for dependencies
-        echo "===== Checking for dependencies ====="
-        apt-cache policy libc6 || echo "Could not check libc6"
-        
-        # Try to install with detailed output
-        echo "===== Installing with detailed output ====="
-        sudo DEBIAN_FRONTEND=noninteractive dpkg -i aws-signer-notation-cli.deb || true
-        
-        # If dpkg fails, try to fix with apt-get
-        echo "===== Attempting to fix dependencies ====="
-        sudo apt-get update
-        sudo apt-get install -f -y
-        
-        # Try again with the package installation
-        echo "===== Retrying package installation ====="
-        sudo DEBIAN_FRONTEND=noninteractive dpkg -i aws-signer-notation-cli.deb || true
-        
-        echo "===== Alternative approach: Manual installation ====="
-        # Try manual installation as a fallback
-        wget https://github.com/notaryproject/notation/releases/download/v1.0.0/notation_1.0.0_linux_amd64.tar.gz
-        wget https://github.com/notaryproject/notation-aws-signer/releases/download/v1.0.2/notation-aws-signer_1.0.2_linux_amd64.tar.gz
-        
-        mkdir -p notation
-        tar -xzf notation_1.0.0_linux_amd64.tar.gz -C notation
-        mkdir -p notation-aws-signer
-        tar -xzf notation-aws-signer_1.0.2_linux_amd64.tar.gz -C notation-aws-signer
-        
-        sudo install notation/notation /usr/local/bin/notation
-        sudo install notation-aws-signer/notation-aws-signer /usr/local/bin/notation-aws-signer
-        
-        # Create necessary directories and symlinks
-        mkdir -p ~/.config/notation/plugins/aws-signer
-        ln -sf /usr/local/bin/notation-aws-signer ~/.config/notation/plugins/aws-signer/notation-aws-signer
-        chmod +x ~/.config/notation/plugins/aws-signer/notation-aws-signer
-    
-        # Install the plugin
-        notation plugin install aws-signer || true
-        
-        echo "===== Verification ====="
-        # Check installations
-        which notation || echo "Notation not found"
-        which notation-aws-signer || echo "AWS Signer plugin not found"
-        notation version || echo "Notation version failed"
-        notation plugin list || echo "Plugin list failed"
-    
-        # Show installed files from package
-        dpkg -L aws-signer-notation-cli || echo "Package files not found"
-        
-        # Check symlinks
-        ls -la ~/.config/notation/plugins/aws-signer/ || echo "Plugin directory missing"
-        
-        echo "===== Installation complete ====="
-
     - name: Sign image with Notation using AWS Signer
       env:
         AWS_SIGNING_PROFILE_NAME: ${{ secrets.AWS_SIGNING_PROFILE_NAME }}
