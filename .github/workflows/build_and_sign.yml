@@ -82,8 +82,19 @@ jobs:
           rm aws-signer-notation-cli.deb
         fi
         
-        # Create plugin directory structure if not existing
-        mkdir -p /home/runner/.config/notation/plugins/aws-signer/notation-aws-signer
+        # Create the PARENT directory structure (not including the actual executable name)
+        mkdir -p ~/.config/notation/plugins/aws-signer
+    
+        # Find where the aws-signer executable is located
+        AWS_SIGNER_PATH=$(which notation-aws-signer)
+        echo "AWS Signer executable found at: $AWS_SIGNER_PATH"
+    
+        # Create a symbolic link to the actual executable
+        ln -sf $AWS_SIGNER_PATH ~/.config/notation/plugins/aws-signer/notation-aws-signer
+        chmod +x ~/.config/notation/plugins/aws-signer/notation-aws-signer
+    
+        # Check the symlink was created correctly
+        ls -la ~/.config/notation/plugins/aws-signer/
     
         # Verify installation
         echo "Verifying installation..."
